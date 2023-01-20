@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -18,13 +19,15 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @OptIn(ExperimentalComposeUiApi::class)
-fun Modifier.freeScroll(): Modifier = composed {
-    val verticalScrollState = rememberScrollState()
-    val horizontalScrollState = rememberScrollState()
+fun Modifier.freeScroll(
+    state: FreeScrollState,
+    enabled: Boolean = true
+): Modifier = composed {
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -34,45 +37,47 @@ fun Modifier.freeScroll(): Modifier = composed {
 
     val flingSpec = rememberSplineBasedDecay<Float>()
 
-    this.verticalScroll(state = verticalScrollState, enabled = false)
-        .horizontalScroll(state = horizontalScrollState, enabled = false)
-        .pointerInput(Unit) {
-            detectDragGestures(
-                onDragStart = { },
-                onDrag = { change, dragAmount ->
-                    change.consume()
+    this.verticalScroll(state = state.verticalScrollState, enabled = false)
+        .horizontalScroll(state = state.horizontalScrollState, enabled = false)
+        .pointerInput(enabled) {
+            if (enabled) {
+                detectDragGestures(
+                    onDragStart = { },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
 
-                    // Add historical position to velocity tracker to increase accuracy
-                    val changeList = change.historical.map {
-                        it.uptimeMillis to it.position
-                    } + (change.uptimeMillis to change.position)
+                        // Add historical position to velocity tracker to increase accuracy
+                        val changeList = change.historical.map {
+                            it.uptimeMillis to it.position
+                        } + (change.uptimeMillis to change.position)
 
-                    changeList.forEach { (time, pos) ->
-                        val position = Offset(
-                            pos.x - horizontalScrollState.value,
-                            pos.y - verticalScrollState.value
-                        )
-                        velocityTracker.addPosition(time, position)
-                    }
+                        changeList.forEach { (time, pos) ->
+                            val position = Offset(
+                                pos.x - state.horizontalScrollState.value,
+                                pos.y - state.verticalScrollState.value
+                            )
+                            velocityTracker.addPosition(time, position)
+                        }
 
-                    coroutineScope.launch {
-                        horizontalScrollState.scrollBy(-dragAmount.x)
-                        verticalScrollState.scrollBy(-dragAmount.y)
-                    }
-                },
-                onDragEnd = {
-                    val velocity = velocityTracker.calculateVelocity()
-                    velocityTracker.resetTracking()
+                        coroutineScope.launch {
+                            state.horizontalScrollState.scrollBy(-dragAmount.x)
+                            state.verticalScrollState.scrollBy(-dragAmount.y)
+                        }
+                    },
+                    onDragEnd = {
+                        val velocity = velocityTracker.calculateVelocity()
+                        velocityTracker.resetTracking()
 
-                    // Launch two animation separately to make sure they work simultaneously.
-                    coroutineScope.launch {
-                        horizontalScrollState.fling(-velocity.x, flingSpec)
+                        // Launch two animation separately to make sure they work simultaneously.
+                        coroutineScope.launch {
+                            state.horizontalScrollState.fling(-velocity.x, flingSpec)
+                        }
+                        coroutineScope.launch {
+                            state.verticalScrollState.fling(-velocity.y, flingSpec)
+                        }
                     }
-                    coroutineScope.launch {
-                        verticalScrollState.fling(-velocity.y, flingSpec)
-                    }
-                }
-            )
+                )
+            }
         }
 }
 
@@ -92,4 +97,31 @@ private suspend fun ScrollState.fling(initialVelocity: Float, flingDecay: DecayA
             if (abs(delta - consumed) > 0.5f) this.cancelAnimation()
         }
     }
+}
+
+class FreeScrollState(
+    internal val horizontalScrollState: ScrollState,
+    internal val verticalScrollState: ScrollState,
+) {
+    suspend fun scrollBy(
+        x: Float = 0f,
+        y: Float = 0f,
+    ) = coroutineScope {
+        launch {
+            horizontalScrollState.scrollBy(x)
+        }
+        launch {
+            verticalScrollState.scrollBy(y)
+        }
+    }
+}
+
+@Composable
+fun rememberFreeScrollState(initialX: Int = 0, initialY: Int = 0): FreeScrollState {
+    val horizontalScrollState = rememberScrollState(initialX)
+    val verticalScrollState = rememberScrollState(initialY)
+    return FreeScrollState(
+        horizontalScrollState = horizontalScrollState,
+        verticalScrollState = verticalScrollState,
+    )
 }
