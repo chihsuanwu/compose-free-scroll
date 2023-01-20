@@ -4,26 +4,9 @@ Jetpack Compose library for free scroll (diagonal scroll) modifier
 
 [![](https://jitpack.io/v/chihsuanwu/compose-free-scroll.svg)](https://jitpack.io/#chihsuanwu/compose-free-scroll)
 
+This library provides a freeScroll modifier that allows scrolling in any direction, as opposed to the official `horizontalScroll` and `verticalScroll` modifiers that only allow scrolling in one direction at a time. With the `freeScroll` modifier, you can scroll in any direction simultaneously.
 
-With the official `horizontalScroll` and `verticalScroll` modifier, we can only scroll in one direction. This library provides a `freeScroll` modifier that allows us to scroll in any direction.
-
-A simple example:
-
-```kotlin
-@Composable
-fun FreeScrollExample() {
-    val freeScrollState = rememberFreeScrollState()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .freeScroll(state = freeScrollState)
-    ) {
-        // Content ...
-    }
-}
-```
-
-# Installation
+To use the freeScroll modifier, add the following dependencies to your project:
 
 ```groovy
 repositories {
@@ -35,27 +18,28 @@ dependencies {
 }
 ```
 
-# Usage
+Then, in your composable function, include the following code:
 
-```
-Modifier
-    .freeScroll(
-        state: FreeScrollState,
-        enabled: Boolean = true
-    )
+```kotlin
+val freeScrollState = rememberFreeScrollState()
+Column(
+    modifier = Modifier
+        .fillMaxSize()
+        .freeScroll(state = freeScrollState)
+) {
+    // Content ...
+}
 ```
 
+You can also enable or disable the scrolling by passing in a enabled parameter to the freeScroll modifier.
 
 # Limitations
 
-This library is still in its early stage. Many features are not implemented yet. 
+This library is still in its early stage and many features are not yet implemented. The following features are planned for future development:
 
-Roadmap:
+* Reverse scroll direction
+* Bounce effect
+* Fling behavior
 
-- [x] Basic free scroll
-- [ ] Expose scroll state
-- [ ] Enable/disable scroll
-- [ ] Fling behavior
-- [ ] Reverse scroll direction
-- [ ] Bounce effect
-- [ ] Scroll to offset programmatically
+<br>
+Any contributions are welcome!
