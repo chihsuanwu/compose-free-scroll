@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,14 +20,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chihsuanwu.freescroll.ui.theme.ComposefreescrollTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +45,6 @@ class MainActivity : ComponentActivity() {
                     FreeScrollView(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.LightGray)
                     )
                 }
             }
@@ -65,22 +68,68 @@ private fun OfficialScrollView(modifier: Modifier = Modifier) {
 @Composable
 private fun FreeScrollView(modifier: Modifier = Modifier) {
     val state = rememberFreeScrollState()
-    var enable by remember {
-        mutableStateOf(true)
-    }
+    val coroutineScope = rememberCoroutineScope()
+    var enable by remember { mutableStateOf(true) }
     Column(
         modifier = modifier
-            .freeScroll(
-                state = state,
-                enabled = enable
-            )
     ) {
-        Button(onClick = {
-             enable = !enable
-        }) {
-            Text(text = "Enable: $enable")
+        Row(
+            modifier = Modifier
+                .background(Color.Green)
+                .horizontalScroll(rememberScrollState())
+        ) {
+            Button(onClick = {
+                enable = !enable
+            }) {
+                Text(text = "Enable: $enable")
+            }
+
+            Button(onClick = {
+                coroutineScope.launch {
+                    state.scrollTo(100, 200)
+                }
+            }) {
+                Text(text = "Scroll to 100, 200")
+            }
+
+            Button(onClick = {
+                coroutineScope.launch {
+                    state.scrollBy(Offset(100f, 200f))
+                }
+            }) {
+                Text(text = "Scroll by 100, 200")
+            }
+
+            Button(onClick = {
+                coroutineScope.launch {
+                    state.animateScrollTo(200, 400)
+                }
+            }) {
+                Text(text = "Animation scroll to 100, 200")
+            }
+
+            Button(onClick = {
+                coroutineScope.launch {
+                    state.animateScrollBy(Offset(100f, 200f))
+                }
+            }) {
+                Text(text = "Animation scroll by 100, 200")
+            }
+
+
+            Text("state: ${state.xValue} ${state.yValue}")
         }
-        Content()
+
+        Column(
+            modifier = modifier
+                .weight(1f)
+                .freeScroll(
+                    state = state,
+                    enabled = enable
+                )
+        ) {
+            Content()
+        }
     }
 }
 
@@ -89,13 +138,16 @@ private fun Content() {
     (0..20).forEach { r ->
         Row {
             (0..10).forEach { c ->
-                Text(
-                    text = "Hello $r-$c",
+                Box(
                     modifier = Modifier
-                        .size(120.dp, 80.dp),
-                    textAlign = TextAlign.Center,
-                    fontSize = 20.sp
-                )
+                        .size(120.dp, 64.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Hello $r-$c",
+                        fontSize = 20.sp
+                    )
+                }
             }
         }
     }

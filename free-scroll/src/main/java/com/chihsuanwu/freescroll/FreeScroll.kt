@@ -8,9 +8,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -19,7 +17,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -97,31 +94,4 @@ private suspend fun ScrollState.fling(initialVelocity: Float, flingDecay: DecayA
             if (abs(delta - consumed) > 0.5f) this.cancelAnimation()
         }
     }
-}
-
-class FreeScrollState(
-    internal val horizontalScrollState: ScrollState,
-    internal val verticalScrollState: ScrollState,
-) {
-    suspend fun scrollBy(
-        x: Float = 0f,
-        y: Float = 0f,
-    ) = coroutineScope {
-        launch {
-            horizontalScrollState.scrollBy(x)
-        }
-        launch {
-            verticalScrollState.scrollBy(y)
-        }
-    }
-}
-
-@Composable
-fun rememberFreeScrollState(initialX: Int = 0, initialY: Int = 0): FreeScrollState {
-    val horizontalScrollState = rememberScrollState(initialX)
-    val verticalScrollState = rememberScrollState(initialY)
-    return FreeScrollState(
-        horizontalScrollState = horizontalScrollState,
-        verticalScrollState = verticalScrollState,
-    )
 }
