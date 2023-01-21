@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.chihsuanwu:compose-free-scroll:0.0.4'
+    implementation 'com.github.chihsuanwu:compose-free-scroll:0.1.0'
 }
 ```
 
@@ -35,11 +35,7 @@ You can also enable or disable the scrolling by passing in a enabled parameter t
 
 # Limitations
 
-This library is still in its early stage and many features are not yet implemented. The following features are planned for future development:
+This library is still in its early stage and many features are not yet implemented.
+Such as **reverse scrolling direction**, **bounce effect** and **fling behavior modification**.
 
-* Reverse scroll direction
-* Bounce effect
-* Fling behavior
-
-<br>
 Any contributions are welcome!
