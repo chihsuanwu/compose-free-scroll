@@ -53,7 +53,7 @@ Column(
     modifier = Modifier
         .fillMaxSize()
         .freeScrollWithTransformGesture(
-            freeScrollState = freeScrollState,
+            state = freeScrollState,
             onGesture = { centroid: Offset,
                           pan: Offset,
                           zoom: Float,
