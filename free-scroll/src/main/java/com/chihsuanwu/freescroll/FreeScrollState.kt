@@ -13,10 +13,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
-
+/**
+ * State of the scroll. Allows to control the scroll position and to observe the scroll position.
+ *
+ * To create an automatically remembered [FreeScrollState], use [rememberFreeScrollState].
+ */
 class FreeScrollState(
-    internal val horizontalScrollState: ScrollState,
-    internal val verticalScrollState: ScrollState,
+    val horizontalScrollState: ScrollState,
+    val verticalScrollState: ScrollState,
 ) {
 
     /**

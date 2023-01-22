@@ -1,9 +1,11 @@
 package com.chihsuanwu.freescroll
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -123,9 +125,12 @@ private fun FreeScrollView(modifier: Modifier = Modifier) {
         Column(
             modifier = modifier
                 .weight(1f)
-                .freeScroll(
+                .freeScrollWithTransformGesture(
                     state = state,
-                    enabled = enable
+                    enabled = enable,
+                    onGesture = { _, _, zoom, _ ->
+                        Log.d("FreeScrollView", "onGesture: $zoom")
+                    }
                 )
         ) {
             Content()
@@ -145,7 +150,11 @@ private fun Content() {
                 ) {
                     Text(
                         text = "Hello $r-$c",
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        modifier = Modifier
+                            .clickable {
+                                Log.d("FreeScrollView", "Click: $r-$c")
+                            }
                     )
                 }
             }

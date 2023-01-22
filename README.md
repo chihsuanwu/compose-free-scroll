@@ -12,8 +12,10 @@ This library provides a freeScroll modifier that allows scrolling in any directi
 In your project's root build.gradle file, add the following:
 
 ```groovy
-repositories {
-    maven { url 'https://jitpack.io' }
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
 }
 ```
 
@@ -40,7 +42,29 @@ Column(
 }
 ```
 
-You can also enable or disable the scrolling by passing in a enabled parameter to the freeScroll modifier.
+Note that this modifier uses `pointerInput` as the underlying implementation, so some
+pointer events will be consumed.
+
+If you want to use `TransformGestures` simultaneously, you can use the `freeScrollWithTransformGesture` modifier.
+
+```kotlin
+val freeScrollState = rememberFreeScrollState()
+Column(
+    modifier = Modifier
+        .fillMaxSize()
+        .freeScrollWithTransformGesture(
+            freeScrollState = freeScrollState,
+            onGesture = { centroid: Offset,
+                          pan: Offset,
+                          zoom: Float,
+                          rotation: Float ->
+                // Transform gestures ...
+            }
+        )
+) {
+    // Content ...
+}
+```
 
 # Limitations
 
