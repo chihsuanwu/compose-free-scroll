@@ -146,6 +146,10 @@ private fun onEnd(
 }
 
 
+/**
+ * This is a copy of [androidx.compose.foundation.gestures.DefaultFlingBehavior]
+ * with a small modification.
+ */
 private suspend fun ScrollState.fling(initialVelocity: Float, flingDecay: DecayAnimationSpec<Float>) {
     if (abs(initialVelocity) < 0.1f) return // Ignore flings with very low velocity
 
