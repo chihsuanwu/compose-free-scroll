@@ -6,7 +6,7 @@ Jetpack Compose library for free scroll (diagonal scroll) modifier
 
 This library provides a `freeScroll` modifier that allows scrolling in any direction, as opposed to the official `horizontalScroll` and `verticalScroll` modifiers that only allow scrolling in one direction at a time. With the `freeScroll` modifier, you can scroll in any direction simultaneously.
 
-[demo](https://user-images.githubusercontent.com/22000682/214753295-274ddb01-ebe3-4db6-8143-68211160b264.webm)
+[demo](https://user-images.githubusercontent.com/22000682/214775708-009af730-dee0-4b9a-a88b-c20e968e9c22.mp4)
 
 
 # Installation
