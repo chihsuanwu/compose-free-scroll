@@ -26,14 +26,23 @@ class FreeScrollState(
     /**
      * current horizontal scroll position value in pixels
      */
-    var xValue = horizontalScrollState.value
-        private set
+    val xValue: Int get() = horizontalScrollState.value
 
     /**
      * current vertical scroll position value in pixels
      */
-    var yValue = verticalScrollState.value
-        private set
+    val yValue: Int get() = verticalScrollState.value
+
+
+    /**
+     * maximum bound for [xValue], or [Int.MAX_VALUE] if still unknown
+     */
+    val xMaxValue: Int get() = horizontalScrollState.maxValue
+
+    /**
+     * maximum bound for [yValue], or [Int.MAX_VALUE] if still unknown
+     */
+    val yMaxValue: Int get() = verticalScrollState.maxValue
 
 
     /**
@@ -105,8 +114,6 @@ class FreeScrollState(
      * @param x the horizontal position to scroll to
      * @param y the vertical position to scroll to
      * @param animationSpec [AnimationSpec] to be used for this scrolling
-     *
-     * @return the amount of scroll consumed
      */
     suspend fun animateScrollTo(
         x: Int,

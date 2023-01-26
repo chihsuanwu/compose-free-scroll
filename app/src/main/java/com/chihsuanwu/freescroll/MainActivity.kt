@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -78,14 +79,23 @@ private fun FreeScrollView(modifier: Modifier = Modifier) {
         Row(
             modifier = Modifier
                 .background(Color.Green)
+                .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
         ) {
+            Text(text = "x: ${state.xValue}, y: ${state.yValue}, max x: ${state.xMaxValue}, max y: ${state.yMaxValue}")
+
             Button(onClick = {
                 enable = !enable
             }) {
                 Text(text = "Enable: $enable")
             }
-
+        }
+        Row(
+            modifier = Modifier
+                .background(Color.Green)
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+        ) {
             Button(onClick = {
                 coroutineScope.launch {
                     state.scrollTo(100, 200)
@@ -107,7 +117,7 @@ private fun FreeScrollView(modifier: Modifier = Modifier) {
                     state.animateScrollTo(200, 400)
                 }
             }) {
-                Text(text = "Animation scroll to 100, 200")
+                Text(text = "Animation scroll to 200, 400")
             }
 
             Button(onClick = {
@@ -117,9 +127,6 @@ private fun FreeScrollView(modifier: Modifier = Modifier) {
             }) {
                 Text(text = "Animation scroll by 100, 200")
             }
-
-
-            Text("state: ${state.xValue} ${state.yValue}")
         }
 
         Column(
