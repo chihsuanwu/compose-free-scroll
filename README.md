@@ -4,9 +4,9 @@ Jetpack Compose library for free scroll (diagonal scroll) modifier
 
 [![](https://jitpack.io/v/chihsuanwu/compose-free-scroll.svg)](https://jitpack.io/#chihsuanwu/compose-free-scroll)
 
-This library provides a freeScroll modifier that allows scrolling in any direction, as opposed to the official `horizontalScroll` and `verticalScroll` modifiers that only allow scrolling in one direction at a time. With the `freeScroll` modifier, you can scroll in any direction simultaneously.
+This library provides a `freeScroll` modifier that allows scrolling in any direction, as opposed to the official `horizontalScroll` and `verticalScroll` modifiers that only allow scrolling in one direction at a time. With the `freeScroll` modifier, you can scroll in any direction simultaneously.
 
-[untitled.webm](https://user-images.githubusercontent.com/22000682/214753295-274ddb01-ebe3-4db6-8143-68211160b264.webm)
+[demo](https://user-images.githubusercontent.com/22000682/214753295-274ddb01-ebe3-4db6-8143-68211160b264.webm)
 
 
 # Installation
@@ -25,7 +25,7 @@ In your app's build.gradle file, add the following:
 
 ```groovy
 dependencies {
-    implementation 'com.github.chihsuanwu:compose-free-scroll:0.1.0'
+    implementation 'com.github.chihsuanwu:compose-free-scroll:0.1.2'
 }
 ```
 
