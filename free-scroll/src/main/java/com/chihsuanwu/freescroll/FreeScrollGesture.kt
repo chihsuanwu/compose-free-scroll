@@ -41,7 +41,7 @@ internal suspend fun PointerInputScope.detectFreeScrollGestures(
         pan: Offset,
         zoom: Float,
         rotation: Float,
-        change: PointerInputChange
+        change: PointerInputChange?
     ) -> Unit,
     onEnd: () -> Unit = {}
 ) {
@@ -57,8 +57,7 @@ internal suspend fun PointerInputScope.detectFreeScrollGestures(
             val down: PointerInputChange = awaitFirstDown(requireUnconsumed = false)
 
             // Drag event
-            var change: PointerInputChange
-            var pointer: PointerId = down.id
+            val pointer: PointerId = down.id
 
             do {
                 val event = awaitPointerEvent()
@@ -66,10 +65,6 @@ internal suspend fun PointerInputScope.detectFreeScrollGestures(
 
                 if (!canceled) {
                     val dragEvent = event.changes.fastFirstOrNull { it.id == pointer }
-                        ?: event.changes.first()
-
-                    pointer = dragEvent.id
-                    change = dragEvent
 
                     val zoomChange = event.calculateZoom()
                     val rotationChange = event.calculateRotation()
@@ -101,7 +96,7 @@ internal suspend fun PointerInputScope.detectFreeScrollGestures(
                             zoomChange != 1f ||
                             panChange != Offset.Zero
                         ) {
-                            onGesture(centroid, panChange, zoomChange, effectiveRotation, change)
+                            onGesture(centroid, panChange, zoomChange, effectiveRotation, dragEvent)
                         }
                         event.changes.fastForEach {
                             if (it.positionChanged()) {

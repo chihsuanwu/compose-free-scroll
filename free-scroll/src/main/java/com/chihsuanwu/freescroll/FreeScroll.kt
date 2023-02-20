@@ -71,7 +71,7 @@ fun Modifier.freeScroll(
 fun Modifier.freeScrollWithTransformGesture(
     state: FreeScrollState,
     enabled: Boolean = true,
-    panZoomLock: Boolean = true,
+    panZoomLock: Boolean = false,
     onGesture: (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
 ): Modifier = composed {
 
@@ -85,7 +85,7 @@ fun Modifier.freeScrollWithTransformGesture(
 
             coroutineScope {
                 detectFreeScrollGestures(
-                    panZoomLock = true,
+                    panZoomLock = panZoomLock,
                     onGesture = { centroid, pan, zoom, rotation, change ->
                         onDrag(change, pan, state, velocityTracker, this)
                         onGesture(centroid, pan, zoom, rotation)
@@ -99,14 +99,30 @@ fun Modifier.freeScrollWithTransformGesture(
 }
 
 
+/**
+ * If [change] is null, it means that the id of the pointer is changed. This happens when
+ * freeScrollWithTransformGesture is used. In this case, we need to reset the velocity tracker to
+ * avoid incorrect velocity calculation.
+ */
 @OptIn(ExperimentalComposeUiApi::class)
 private fun onDrag(
-    change: PointerInputChange,
+    change: PointerInputChange?,
     dragAmount: Offset,
     state: FreeScrollState,
     velocityTracker: VelocityTracker,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
 ) {
+
+    coroutineScope.launch {
+        state.horizontalScrollState.scrollBy(-dragAmount.x)
+        state.verticalScrollState.scrollBy(-dragAmount.y)
+    }
+
+    if (change == null) {
+        velocityTracker.resetTracking()
+        return
+    }
+
     // Add historical position to velocity tracker to increase accuracy
     val changeList = change.historical.map {
         it.uptimeMillis to it.position
@@ -118,11 +134,6 @@ private fun onDrag(
             pos.y - state.verticalScrollState.value
         )
         velocityTracker.addPosition(time, position)
-    }
-
-    coroutineScope.launch {
-        state.horizontalScrollState.scrollBy(-dragAmount.x)
-        state.verticalScrollState.scrollBy(-dragAmount.y)
     }
 }
 
