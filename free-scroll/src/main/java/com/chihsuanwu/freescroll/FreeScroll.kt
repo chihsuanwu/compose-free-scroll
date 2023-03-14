@@ -33,33 +33,61 @@ import kotlin.math.abs
  *
  * @param state state of the scroll
  * @param enabled whether the scroll is enabled
+ * @param horizontalReverseScrolling reverse the horizontal scrolling direction,
+ * when true, 0 [FreeScrollState.xValue] will mean right, otherwise left.
+ * @param verticalReverseScrolling reverse the vertical scrolling direction,
+ * when true, 0 [FreeScrollState.yValue] will mean bottom, otherwise top.
  */
 fun Modifier.freeScroll(
     state: FreeScrollState,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    horizontalReverseScrolling: Boolean = false,
+    verticalReverseScrolling: Boolean = false,
 ): Modifier = composed {
 
     val velocityTracker = remember { VelocityTracker() }
     val flingSpec = rememberSplineBasedDecay<Float>()
 
-    this.verticalScroll(state = state.verticalScrollState, enabled = false)
-        .horizontalScroll(state = state.horizontalScrollState, enabled = false)
-        .pointerInput(enabled) {
-            if (!enabled) return@pointerInput
+    this.horizontalScroll(
+        state = state.horizontalScrollState,
+        enabled = false,
+        reverseScrolling = horizontalReverseScrolling
+    ).verticalScroll(
+        state = state.verticalScrollState,
+        enabled = false,
+        reverseScrolling = verticalReverseScrolling
+    )
+    .pointerInput(enabled, horizontalReverseScrolling, verticalReverseScrolling) {
+        if (!enabled) return@pointerInput
 
-            coroutineScope {
-                detectDragGestures(
-                    onDragStart = { },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        onDrag(change, dragAmount, state, velocityTracker, this)
-                    },
-                    onDragEnd = {
-                        onEnd(velocityTracker, state, flingSpec, this)
-                    }
-                )
-            }
+        coroutineScope {
+            detectDragGestures(
+                onDragStart = { },
+                onDrag = { change, dragAmount ->
+                    change.consume()
+                    onDrag(
+                        change = change,
+                        dragAmount = dragAmount,
+                        state = state,
+                        horizontalReverseScrolling = horizontalReverseScrolling,
+                        verticalReverseScrolling = verticalReverseScrolling,
+                        velocityTracker = velocityTracker,
+                        coroutineScope = this
+                    )
+                },
+                onDragEnd = {
+                    onEnd(
+                        velocityTracker = velocityTracker,
+                        state = state,
+                        horizontalReverseScrolling = horizontalReverseScrolling,
+                        verticalReverseScrolling = verticalReverseScrolling,
+                        flingSpec = flingSpec,
+                        coroutineScope = this
+                    )
+                }
+            )
         }
+    }
 }
 
 /**
@@ -72,30 +100,54 @@ fun Modifier.freeScrollWithTransformGesture(
     state: FreeScrollState,
     enabled: Boolean = true,
     panZoomLock: Boolean = false,
+    horizontalReverseScrolling: Boolean = false,
+    verticalReverseScrolling: Boolean = false,
     onGesture: (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
 ): Modifier = composed {
 
     val velocityTracker = remember { VelocityTracker() }
     val flingSpec = rememberSplineBasedDecay<Float>()
 
-    this.verticalScroll(state = state.verticalScrollState, enabled = false)
-        .horizontalScroll(state = state.horizontalScrollState, enabled = false)
-        .pointerInput(enabled) {
-            if (!enabled) return@pointerInput
+    this.horizontalScroll(
+        state = state.horizontalScrollState,
+        enabled = false,
+        reverseScrolling = horizontalReverseScrolling
+    ).verticalScroll(
+        state = state.verticalScrollState,
+        enabled = false,
+        reverseScrolling = verticalReverseScrolling
+    )
+    .pointerInput(enabled, horizontalReverseScrolling, verticalReverseScrolling) {
+        if (!enabled) return@pointerInput
 
-            coroutineScope {
-                detectFreeScrollGestures(
-                    panZoomLock = panZoomLock,
-                    onGesture = { centroid, pan, zoom, rotation, change ->
-                        onDrag(change, pan, state, velocityTracker, this)
-                        onGesture(centroid, pan, zoom, rotation)
-                    },
-                    onEnd = {
-                        onEnd(velocityTracker, state, flingSpec, this)
-                    }
-                )
-            }
+        coroutineScope {
+            detectFreeScrollGestures(
+                panZoomLock = panZoomLock,
+                onGesture = { centroid, pan, zoom, rotation, change ->
+                    onDrag(
+                        change = change,
+                        dragAmount = pan,
+                        state = state,
+                        horizontalReverseScrolling = horizontalReverseScrolling,
+                        verticalReverseScrolling = verticalReverseScrolling,
+                        velocityTracker = velocityTracker,
+                        coroutineScope = this
+                    )
+                    onGesture(centroid, pan, zoom, rotation)
+                },
+                onEnd = {
+                    onEnd(
+                        velocityTracker = velocityTracker,
+                        state = state,
+                        horizontalReverseScrolling = horizontalReverseScrolling,
+                        verticalReverseScrolling = verticalReverseScrolling,
+                        flingSpec = flingSpec,
+                        coroutineScope = this
+                    )
+                }
+            )
         }
+    }
 }
 
 
@@ -109,13 +161,19 @@ private fun onDrag(
     change: PointerInputChange?,
     dragAmount: Offset,
     state: FreeScrollState,
+    horizontalReverseScrolling: Boolean,
+    verticalReverseScrolling: Boolean,
     velocityTracker: VelocityTracker,
     coroutineScope: CoroutineScope,
 ) {
 
     coroutineScope.launch {
-        state.horizontalScrollState.scrollBy(-dragAmount.x)
-        state.verticalScrollState.scrollBy(-dragAmount.y)
+        state.horizontalScrollState.scrollBy(
+            if (horizontalReverseScrolling) dragAmount.x else -dragAmount.x
+        )
+        state.verticalScrollState.scrollBy(
+            if (verticalReverseScrolling) dragAmount.y else -dragAmount.y
+        )
     }
 
     if (change == null) {
@@ -130,8 +188,14 @@ private fun onDrag(
 
     changeList.forEach { (time, pos) ->
         val position = Offset(
-            pos.x - state.horizontalScrollState.value,
-            pos.y - state.verticalScrollState.value
+            x = pos.x - if (horizontalReverseScrolling)
+                -state.horizontalScrollState.value
+            else
+                state.horizontalScrollState.value,
+            y = pos.y - if (verticalReverseScrolling)
+                -state.verticalScrollState.value
+            else
+                state.verticalScrollState.value,
         )
         velocityTracker.addPosition(time, position)
     }
@@ -141,6 +205,8 @@ private fun onDrag(
 private fun onEnd(
     velocityTracker: VelocityTracker,
     state: FreeScrollState,
+    horizontalReverseScrolling: Boolean,
+    verticalReverseScrolling: Boolean,
     flingSpec: DecayAnimationSpec<Float>,
     coroutineScope: CoroutineScope
 ) {
@@ -149,10 +215,16 @@ private fun onEnd(
 
     // Launch two animation separately to make sure they work simultaneously.
     coroutineScope.launch {
-        state.horizontalScrollState.fling(-velocity.x, flingSpec)
+        state.horizontalScrollState.fling(
+            initialVelocity = if (horizontalReverseScrolling) velocity.x else -velocity.x,
+            flingDecay = flingSpec
+        )
     }
     coroutineScope.launch {
-        state.verticalScrollState.fling(-velocity.y, flingSpec)
+        state.verticalScrollState.fling(
+            initialVelocity = if (verticalReverseScrolling) velocity.y else -velocity.y,
+            flingDecay = flingSpec
+        )
     }
 }
 

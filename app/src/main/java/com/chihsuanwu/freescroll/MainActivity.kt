@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -54,24 +53,13 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-@Composable
-private fun OfficialScrollView(modifier: Modifier = Modifier) {
-    val horizontalScrollState = rememberScrollState()
-    val verticalScrollState = rememberScrollState()
-    Column(modifier = modifier
-        .horizontalScroll(horizontalScrollState)
-        .verticalScroll(verticalScrollState)
-    ) {
-        Content()
-    }
-}
-
 @Composable
 private fun FreeScrollView(modifier: Modifier = Modifier) {
     val state = rememberFreeScrollState()
     val coroutineScope = rememberCoroutineScope()
     var enable by remember { mutableStateOf(true) }
+    var horizontalReverse by remember { mutableStateOf(false) }
+    var verticalReverse by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
     ) {
@@ -87,6 +75,16 @@ private fun FreeScrollView(modifier: Modifier = Modifier) {
                 enable = !enable
             }) {
                 Text(text = "Enable: $enable")
+            }
+            Button(onClick = {
+                horizontalReverse = !horizontalReverse
+            }) {
+                Text(text = "Horizontal reverse: $horizontalReverse")
+            }
+            Button(onClick = {
+                verticalReverse = !verticalReverse
+            }) {
+                Text(text = "Vertical reverse: $verticalReverse")
             }
         }
         Row(
@@ -134,6 +132,8 @@ private fun FreeScrollView(modifier: Modifier = Modifier) {
                 .freeScrollWithTransformGesture(
                     state = state,
                     enabled = enable,
+                    horizontalReverseScrolling = horizontalReverse,
+                    verticalReverseScrolling = verticalReverse,
                     onGesture = { _, _, zoom, _ ->
                         Log.d("FreeScrollView", "onGesture: $zoom")
                     }
@@ -168,20 +168,9 @@ private fun Content() {
 @Composable
 @Preview
 fun Preview() {
-    Column(
+    FreeScrollView(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-    ) {
-        OfficialScrollView(
-            modifier = Modifier
-                .weight(1f)
-                .background(Color.Gray)
-        )
-        FreeScrollView(
-            modifier = Modifier
-                .weight(1f)
-                .background(Color.LightGray)
-        )
-    }
+            .background(Color.LightGray)
+    )
 }
