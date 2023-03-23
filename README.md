@@ -4,7 +4,10 @@ Jetpack Compose library for free scroll (diagonal scroll) modifier
 
 [![](https://jitpack.io/v/chihsuanwu/compose-free-scroll.svg)](https://jitpack.io/#chihsuanwu/compose-free-scroll)
 
-This library provides a `freeScroll` modifier that allows scrolling in any direction, as opposed to the official `horizontalScroll` and `verticalScroll` modifiers that only allow scrolling in one direction at a time. With the `freeScroll` modifier, you can scroll in any direction simultaneously.
+This library provides a `freeScroll` modifier that allows scrolling in any direction,
+as opposed to the official `horizontalScroll` and `verticalScroll` modifiers that
+only allow scrolling in one direction at a time. With the `freeScroll` modifier,
+you can scroll in any direction simultaneously.
 
 [demo](https://user-images.githubusercontent.com/22000682/214777145-a7b2cbdd-c780-47a2-bb5d-c46e2e02b93f.mp4)
 
@@ -24,7 +27,7 @@ In your app's build.gradle file, add the following:
 
 ```groovy
 dependencies {
-    implementation 'com.github.chihsuanwu:compose-free-scroll:0.1.3'
+    implementation 'com.github.chihsuanwu:compose-free-scroll:0.2.0'
 }
 ```
 
@@ -69,7 +72,7 @@ Column(
 
 # Limitations
 
-This library is still in its early stage and many features are not yet implemented.
-Such as **reverse scrolling direction**, **bounce effect** and **fling behavior modification**.
+Currently, this library still lacks a bounce effect feature. This is limited by the
+current implementation.
 
 Any contributions are highly appreciated!
