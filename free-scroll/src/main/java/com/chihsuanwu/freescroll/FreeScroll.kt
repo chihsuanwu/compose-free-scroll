@@ -1,10 +1,7 @@
 package com.chihsuanwu.freescroll
 
-import androidx.compose.animation.core.AnimationState
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.animateDecay
-import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
@@ -21,7 +18,6 @@ import detectFreeScrollGestures
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 /**
  * Modify element to allow to scroll in both directions.
@@ -37,16 +33,19 @@ import kotlin.math.abs
  * when true, 0 [FreeScrollState.xValue] will mean right, otherwise left.
  * @param verticalReverseScrolling reverse the vertical scrolling direction,
  * when true, 0 [FreeScrollState.yValue] will mean bottom, otherwise top.
+ * @param flingBehavior logic describing fling behavior when drag has finished with velocity.
+ * If null, default from [ScrollableDefaults.flingBehavior] will be used.
  */
 fun Modifier.freeScroll(
     state: FreeScrollState,
     enabled: Boolean = true,
     horizontalReverseScrolling: Boolean = false,
     verticalReverseScrolling: Boolean = false,
+    flingBehavior: FlingBehavior? = null,
 ): Modifier = composed {
 
     val velocityTracker = remember { VelocityTracker() }
-    val flingSpec = rememberSplineBasedDecay<Float>()
+    val fling = flingBehavior ?: ScrollableDefaults.flingBehavior()
 
     this.horizontalScroll(
         state = state.horizontalScrollState,
@@ -81,7 +80,7 @@ fun Modifier.freeScroll(
                         state = state,
                         horizontalReverseScrolling = horizontalReverseScrolling,
                         verticalReverseScrolling = verticalReverseScrolling,
-                        flingSpec = flingSpec,
+                        flingBehavior = fling,
                         coroutineScope = this
                     )
                 }
@@ -102,11 +101,12 @@ fun Modifier.freeScrollWithTransformGesture(
     panZoomLock: Boolean = false,
     horizontalReverseScrolling: Boolean = false,
     verticalReverseScrolling: Boolean = false,
+    flingBehavior: FlingBehavior? = null,
     onGesture: (centroid: Offset, pan: Offset, zoom: Float, rotation: Float) -> Unit,
 ): Modifier = composed {
 
     val velocityTracker = remember { VelocityTracker() }
-    val flingSpec = rememberSplineBasedDecay<Float>()
+    val fling = flingBehavior ?: ScrollableDefaults.flingBehavior()
 
     this.horizontalScroll(
         state = state.horizontalScrollState,
@@ -141,7 +141,7 @@ fun Modifier.freeScrollWithTransformGesture(
                         state = state,
                         horizontalReverseScrolling = horizontalReverseScrolling,
                         verticalReverseScrolling = verticalReverseScrolling,
-                        flingSpec = flingSpec,
+                        flingBehavior = fling,
                         coroutineScope = this
                     )
                 }
@@ -207,7 +207,7 @@ private fun onEnd(
     state: FreeScrollState,
     horizontalReverseScrolling: Boolean,
     verticalReverseScrolling: Boolean,
-    flingSpec: DecayAnimationSpec<Float>,
+    flingBehavior: FlingBehavior,
     coroutineScope: CoroutineScope
 ) {
     val velocity = velocityTracker.calculateVelocity()
@@ -215,38 +215,17 @@ private fun onEnd(
 
     // Launch two animation separately to make sure they work simultaneously.
     coroutineScope.launch {
-        state.horizontalScrollState.fling(
-            initialVelocity = if (horizontalReverseScrolling) velocity.x else -velocity.x,
-            flingDecay = flingSpec
-        )
+        state.horizontalScrollState.scroll {
+            with(flingBehavior) {
+                performFling(if (horizontalReverseScrolling) velocity.x else -velocity.x)
+            }
+        }
     }
     coroutineScope.launch {
-        state.verticalScrollState.fling(
-            initialVelocity = if (verticalReverseScrolling) velocity.y else -velocity.y,
-            flingDecay = flingSpec
-        )
-    }
-}
-
-
-/**
- * This is a copy of [androidx.compose.foundation.gestures.DefaultFlingBehavior]
- * with a small modification.
- */
-private suspend fun ScrollState.fling(initialVelocity: Float, flingDecay: DecayAnimationSpec<Float>) {
-    if (abs(initialVelocity) < 0.1f) return // Ignore flings with very low velocity
-
-    scroll {
-        var lastValue = 0f
-        AnimationState(
-            initialValue = 0f,
-            initialVelocity = initialVelocity,
-        ).animateDecay(flingDecay) {
-            val delta = value - lastValue
-            val consumed = scrollBy(delta)
-            lastValue = value
-            // avoid rounding errors and stop if anything is unconsumed
-            if (abs(delta - consumed) > 0.5f) this.cancelAnimation()
+        state.verticalScrollState.scroll {
+            with(flingBehavior) {
+                performFling(if (verticalReverseScrolling) velocity.y else -velocity.y)
+            }
         }
     }
 }
