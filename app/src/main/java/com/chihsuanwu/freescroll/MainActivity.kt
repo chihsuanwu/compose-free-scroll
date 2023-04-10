@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun FreeScrollView(modifier: Modifier = Modifier) {
-    val state = rememberFreeScrollState()
+    val state = rememberFreeScrollState(400, 400)
     val coroutineScope = rememberCoroutineScope()
     var enable by remember { mutableStateOf(true) }
     var horizontalReverse by remember { mutableStateOf(false) }
