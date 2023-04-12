@@ -140,8 +140,7 @@ class FreeScrollState(
 fun rememberFreeScrollState(initialX: Int = 0, initialY: Int = 0): FreeScrollState {
     val horizontalScrollState = rememberScrollState(initialX)
     val verticalScrollState = rememberScrollState(initialY)
-    return FreeScrollState(
-        horizontalScrollState = horizontalScrollState,
-        verticalScrollState = verticalScrollState,
-    )
+    return remember {
+        FreeScrollState(horizontalScrollState, verticalScrollState)
+    }
 }
