@@ -27,7 +27,7 @@ In your app's build.gradle file, add the following:
 
 ```groovy
 dependencies {
-    implementation 'com.github.chihsuanwu:compose-free-scroll:0.2.0'
+    implementation 'com.github.chihsuanwu:compose-free-scroll:0.2.1'
 }
 ```
 
